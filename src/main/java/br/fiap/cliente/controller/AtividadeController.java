@@ -22,7 +22,7 @@ public class AtividadeController{
         try{
          if(data == null) return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
          Atividade entity = repository.save(data);
-         return new ResponseEntity<Atividade>(entity, HttpStatus.OK);
+         return new ResponseEntity<Atividade>(entity, HttpStatus.CREATED);
         }catch (Exception e){
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
