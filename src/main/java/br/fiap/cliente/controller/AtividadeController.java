@@ -8,14 +8,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/atividade")
-public class AtividadeController implements IBaseController<Atividade>{
+public class AtividadeController{
     @Autowired
     AtividadeRepository repository;
 
-    @Override
+
     @PostMapping
     public ResponseEntity<Atividade> post(@RequestBody Atividade data) {
         try{
@@ -26,25 +27,32 @@ public class AtividadeController implements IBaseController<Atividade>{
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    @Override
     @PutMapping("/{id}")
-    public ResponseEntity<Atividade> put(@RequestParam String id,@RequestBody  Atividade data) {
-        try{
-            if(data == null || id.isEmpty()) return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-            Atividade entity = repository.findById(id).orElse(null);
-            if(entity == null) return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-            entity = data;
-            entity = repository.save(entity);
-            return new ResponseEntity<Atividade>(entity, HttpStatus.OK);
-        }catch (Exception e){
+
+    public ResponseEntity<Atividade> put(@PathVariable String id, @RequestBody Atividade data) {
+        try {
+            if (data == null || id.isEmpty()) {
+                return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            }
+            Optional<Atividade> entity = repository.findById(id);
+            if (!entity.isPresent()) return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            entity.map(e -> {
+                e.setId(id);
+                e.setNumeroAtividade(data.getNumeroAtividade());
+                e.setNome(data.getNome());
+                e.setRm(data.getRm());
+                e.setUrlGitHub(data.getUrlGitHub());
+                return e;
+            });
+            Atividade response = repository.save(entity.get());
+            return new ResponseEntity<Atividade>(response, HttpStatus.OK);
+        } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @Override
     @DeleteMapping("/{id}")
-    public ResponseEntity<Boolean> delete(@RequestParam String id) {
+    public ResponseEntity<Boolean> delete(@PathVariable String id) {
         try{
             if(id.isEmpty()) return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
             Atividade entity = repository.findById(id).orElse(null);
@@ -56,9 +64,9 @@ public class AtividadeController implements IBaseController<Atividade>{
         }
     }
 
-    @Override
+
     @GetMapping("/{id}")
-    public ResponseEntity<Atividade> get(@RequestParam String id) {
+    public ResponseEntity<Atividade> get(@PathVariable String id) {
         try{
             if(id.isEmpty()) return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
             Atividade entity = repository.findById(id).orElse(null);
@@ -69,7 +77,6 @@ public class AtividadeController implements IBaseController<Atividade>{
         }
     }
 
-    @Override
     @GetMapping
     public ResponseEntity<List<Atividade>> getAll() {
         try{
